@@ -24,12 +24,12 @@ docker build -t sqlsrv .
 Write-Host `n
 Write-Host ===> Creating Docker volume for data persistence
 
-if ((docker volume ls -f name=mssql-data)) {
+if (docker volume ls -f name=mssql-data) {
 
     docker volume rm mssql-data
     docker volume create mssql-data
 
-} 
+}
 else {
 
     docker volume create mssql-data
@@ -50,7 +50,7 @@ $STD_SA_PASSWD = (New-Object PSCredential "user",$SA_PASSWD).GetNetworkCredentia
 
 # Change the SA password
 Start-Sleep -s 60
-while ((docker inspect -f {{.State.Health.Status}} sqlsrv-sandbox) -ne 'healthy')
+while ((docker inspect -f "{{.State.Health.Status}}" sqlsrv-sandbox) -ne 'healthy')
 {
     Start-Sleep -s 10
 }
