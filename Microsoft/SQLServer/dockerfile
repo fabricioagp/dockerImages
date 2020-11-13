@@ -1,0 +1,30 @@
+FROM mcr.microsoft.com/mssql/server:2019-latest
+
+# Switch to root user for access to apt-get install
+USER root
+
+# Install dos2unix to convert end-of-line from windows to unix pattern
+RUN apt-get -y update  && \
+        apt-get install -y dos2unix
+
+# Set env variables
+ENV ACCEPT_EULA=Y \
+    MSSQL_SA_PASSWORD=Admin@2020
+
+# Create working directory
+RUN mkdir -p /usr/src/app
+WORKDIR /usr/src/app
+
+# Copy files to the working directory and run dos2unix tool to convert end-of-line
+COPY createdb.sql entrypoint.sh /usr/src/app/
+RUN dos2unix *
+
+# Expose the SQL Server port to the host
+EXPOSE 1433
+
+HEALTHCHECK --interval=20s --timeout=180s --retries=6 \
+  CMD [ "/opt/mssql-tools/bin/sqlcmd -U SA -P "Admin@2020" -Q 'SELECT Name from sys.Databases;'" ]
+
+# Switch to mssql user run the entrypoint script to start SQL Server
+USER mssql
+ENTRYPOINT /bin/bash ./entrypoint.sh
